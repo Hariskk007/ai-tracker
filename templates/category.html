@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}{{ category.name }} — AI Tools Hub{% endblock %}
+
+{% block content %}
+<section class="pt-10 pb-20">
+    <div class="max-w-7xl mx-auto px-6">
+
+        <!-- Header -->
+        <div class="mb-10">
+            <a href="{{ url_for('tools') }}" class="inline-flex items-center gap-2 text-sm text-zinc-500 hover:text-amber-400 transition-colors mb-6">
+                <i class="fa-solid fa-arrow-left text-xs"></i>
+                All Categories
+            </a>
+            <div class="flex items-center gap-4">
+                <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-accent/10 border border-amber-500/20 flex items-center justify-center shrink-0">
+                    <i class="fa-solid {{ category.icon }} text-2xl sm:text-3xl text-accent"></i>
+                </div>
+                <div>
+                    <h1 class="font-display text-3xl sm:text-4xl font-bold tracking-tight">{{ category.name }}</h1>
+                    <p class="text-zinc-500 mt-1 text-[.95rem]">{{ category.description }}</p>
+                </div>
+            </div>
+        </div>
+
+        {% if tools %}
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+            {% for tool in tools %}
+            <article class="anim-scroll group bg-surface-700 border border-line rounded-2xl p-6 flex flex-col transition-all duration-300 hover:border-line-hover hover:bg-surface-600 hover:-translate-y-1 hover:shadow-[0_20px_50px_-12px_rgba(0,0,0,.6)]">
+                <div class="flex items-start gap-3.5 mb-3.5">
+                    <div class="w-12 h-12 rounded-xl flex items-center justify-center font-display font-extrabold text-lg text-white shrink-0" style="background:{{ tool.name|tool_color }}">
+                        {{ tool.name[0] }}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <h3 class="font-display font-bold text-[1.05rem] truncate">
+                            <a href="{{ url_for('tool_detail', slug=tool.slug) }}" class="text-zinc-100 group-hover:text-amber-400 transition-colors">{{ tool.name }}</a>
+                        </h3>
+                        <span class="text-xs text-zinc-600 font-medium">{{ category.name }}</span>
+                    </div>
+                    <button class="btn-save w-9 h-9 rounded-lg flex items-center justify-center text-zinc-600 hover:text-amber-400 hover:bg-accent-dim transition-all shrink-0" data-tool-id="{{ tool.id }}">
+                        <i class="fa-regular fa-bookmark text-sm"></i>
+                    </button>
+                </div>
+                <p class="text-zinc-400 text-[.88rem] leading-relaxed flex-1 mb-5 line-clamp-2">{{ tool.tagline }}</p>
+                <div class="flex items-center justify-between pt-4 border-t border-line">
+                    <div class="flex items-center gap-2 text-sm font-semibold text-zinc-200">
+                        <span class="text-amber-400 flex gap-px text-xs">{{ tool.rating|star_rating|safe }}</span>
+                        {{ tool.rating }}
+                        <span class="text-zinc-600 font-normal text-xs">({{ tool.review_count }})</span>
+                    </div>
+                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[.68rem] font-semibold uppercase tracking-wider
+                        {% if tool.pricing == 'Free' %}bg-emerald-500/10 text-emerald-400
+                        {% elif tool.pricing == 'Freemium' %}bg-cyan-500/10 text-cyan-400
+                        {% elif tool.pricing == 'Paid' %}bg-amber-500/10 text-amber-400
+                        {% else %}bg-purple-500/10 text-purple-400{% endif %}">
+                        {{ tool.pricing }}
+                    </span>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if pagination.pages > 1 %}
+        <div class="flex items-center justify-center gap-2 mt-12">
+            {% if pagination.has_prev %}
+            <a href="{{ url_for('category', slug=category.slug, page=pagination.prev_num) }}"
+               class="w-10 h-10 flex items-center justify-center rounded-xl border border-line text-zinc-500 hover:text-zinc-100 hover:border-line-hover transition-all">
+                <i class="fa-solid fa-chevron-left text-xs"></i>
+            </a>
+            {% endif %}
+            {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+                {% if p %}
+                <a href="{{ url_for('category', slug=category.slug, page=p) }}"
+                   class="w-10 h-10 flex items-center justify-center rounded-xl text-sm font-medium transition-all
+                          {% if p == pagination.page %}bg-accent text-black border border-accent{% else %}border border-line text-zinc-500 hover:text-zinc-100 hover:border-line-hover{% endif %}">
+                    {{ p }}
+                </a>
+                {% else %}
+                <span class="w-10 h-10 flex items-center justify-center text-zinc-700">…</span>
+                {% endif %}
+            {% endfor %}
+            {% if pagination.has_next %}
+            <a href="{{ url_for('category', slug=category.slug, page=pagination.next_num) }}"
+               class="w-10 h-10 flex items-center justify-center rounded-xl border border-line text-zinc-500 hover:text-zinc-100 hover:border-line-hover transition-all">
+                <i class="fa-solid fa-chevron-right text-xs"></i>
+            </a>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {% else %}
+        <div class="flex flex-col items-center justify-center py-24 text-center">
+            <div class="w-20 h-20 rounded-2xl bg-surface-700 border border-line flex items-center justify-center mb-6">
+                <i class="fa-solid {{ category.icon }} text-3xl text-zinc-600"></i>
+            </div>
+            <h3 class="font-display text-xl font-bold mb-2">No tools in this category yet</h3>
+            <p class="text-zinc-500 text-sm max-w-sm mb-8">Be the first to submit an AI tool for {{ category.name }}.</p>
+            <a href="{{ url_for('submit') }}" class="inline-flex items-center gap-2 px-6 py-3 bg-accent hover:bg-accent-hover text-black font-semibold rounded-xl transition-colors">
+                Submit a Tool
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

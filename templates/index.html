@@ -1,0 +1,277 @@
+{% extends "base.html" %}
+
+{% block title %}AI Tools Hub — Discover the Best AI Tools{% endblock %}
+
+{% block content %}
+
+<!-- ════════════════════════════════════════════════════════
+     HERO
+     ════════════════════════════════════════════════════════ -->
+<section class="relative overflow-hidden pt-28 pb-20 text-center">
+    <!-- Glows -->
+    <div class="absolute -top-52 left-1/2 -translate-x-1/2 w-[900px] h-[650px] bg-amber-500/10 rounded-full blur-[100px] pointer-events-none hero-glow" style="animation:pulse-glow 6s ease-in-out infinite"></div>
+    <div class="absolute -bottom-40 -right-60 w-[550px] h-[550px] bg-cyan-500/6 rounded-full blur-[100px] pointer-events-none" style="animation:pulse-glow 8s ease-in-out infinite reverse"></div>
+    <!-- Floating shapes -->
+    <div class="absolute top-32 left-[12%] w-3 h-3 rounded-full bg-amber-500/40" style="animation:float 5s ease-in-out infinite"></div>
+    <div class="absolute top-48 right-[15%] w-2 h-2 rounded-full bg-cyan-400/30" style="animation:float 7s ease-in-out infinite 1s"></div>
+    <div class="absolute bottom-24 left-[22%] w-2.5 h-2.5 rounded-full bg-purple-400/25" style="animation:float 6s ease-in-out infinite .5s"></div>
+    <div class="absolute bottom-32 right-[25%] w-2 h-2 rounded-full bg-amber-400/30" style="animation:float 8s ease-in-out infinite 2s"></div>
+
+    <div class="relative max-w-7xl mx-auto px-6">
+
+        <div class="anim-fade-up anim-d1 inline-flex items-center gap-2 bg-accent-dim text-accent px-4 py-1.5 rounded-full text-xs font-semibold border border-amber-500/20 mb-7">
+            <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+            Updated weekly with new tools
+        </div>
+
+        <h1 class="anim-fade-up anim-d2 font-display font-extrabold tracking-tight leading-[1.08] max-w-[780px] mx-auto mb-5
+                    text-[2.6rem] sm:text-7xl lg:text-[4.25rem]">
+            Discover the Best<br>
+            <span class="gradient-animated">AI Tools</span> for Any Task
+        </h1>
+
+        <p class="anim-fade-up anim-d3 text-zinc-400 text-lg sm:text-xl leading-relaxed max-w-[560px] mx-auto mb-14">
+            A curated directory of AI-powered tools across writing, design, code, video, and more. Find the right tool, compare pricing, and save your favorites.
+        </p>
+
+        <!-- Search bar -->
+        <form action="{{ url_for('tools') }}" method="get" class="anim-fade-up anim-d4 relative max-w-[600px] mx-auto mb-14">
+            <i class="fa-solid fa-magnifying-glass absolute left-5 top-1/2 -translate-y-1/2 text-zinc-600 text-base"></i>
+            <input type="text" name="q" placeholder="Search tools by name, category, or feature..." autocomplete="off"
+                class="w-full h-14 sm:h-[58px] pl-[52px] pr-36 bg-surface-700 border border-line rounded-full text-zinc-100 text-base placeholder:text-zinc-600 outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition-all">
+            <button type="submit" class="absolute right-[6px] top-1/2 -translate-y-1/2 h-[42px] sm:h-[46px] px-6 bg-accent hover:bg-accent-hover text-black font-semibold text-sm rounded-full transition-colors shadow-lg shadow-amber-500/25">
+                Search
+            </button>
+        </form>
+
+        <!-- Stats -->
+        <div class="anim-fade-up anim-d5 flex justify-center gap-10 sm:gap-20 flex-wrap">
+            <div class="text-center">
+                <div class="font-display text-3xl sm:text-4xl font-extrabold text-zinc-100">{{ total_tools }}<span class="text-amber-400">+</span></div>
+                <div class="text-xs text-zinc-500 font-medium mt-1">AI Tools</div>
+            </div>
+            <div class="text-center">
+                <div class="font-display text-3xl sm:text-4xl font-extrabold text-zinc-100">{{ total_categories }}</div>
+                <div class="text-xs text-zinc-500 font-medium mt-1">Categories</div>
+            </div>
+            <div class="text-center">
+                <div class="font-display text-3xl sm:text-4xl font-extrabold text-zinc-100">{{ avg_rating }}</div>
+                <div class="text-xs text-zinc-500 font-medium mt-1">Avg Rating</div>
+            </div>
+            <div class="text-center">
+                <div class="font-display text-3xl sm:text-4xl font-extrabold text-zinc-100">Weekly</div>
+                <div class="text-xs text-zinc-500 font-medium mt-1">Updates</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════
+     FEATURED TOOLS
+     ════════════════════════════════════════════════════════ -->
+<section class="py-20">
+    <div class="max-w-7xl mx-auto px-6">
+        <div class="anim-scroll flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-10">
+            <div>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                    <h2 class="font-display text-3xl sm:text-4xl font-bold tracking-tight">Featured Tools</h2>
+                </div>
+                <p class="text-zinc-500 mt-2 text-[.95rem]">Hand-picked top performers across every category</p>
+            </div>
+            <a href="{{ url_for('tools') }}" class="inline-flex items-center gap-2 text-accent text-sm font-semibold hover:gap-3 transition-all whitespace-nowrap">
+                View all tools <i class="fa-solid fa-arrow-right text-xs"></i>
+            </a>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {% for tool in featured %}
+            <article class="anim-scroll group card-glow bg-surface-700 border border-line rounded-2xl p-6 flex flex-col transition-all duration-300 hover:border-line-hover hover:bg-surface-600 hover:-translate-y-1 hover:shadow-[0_20px_50px_-12px_rgba(0,0,0,.6)]">
+                <div class="flex items-start gap-3.5 mb-3.5">
+                    <div class="w-12 h-12 rounded-xl flex items-center justify-center font-display font-extrabold text-lg text-white shrink-0" style="background:{{ tool.name|tool_color }}">
+                        {{ tool.name[0] }}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <h3 class="font-display font-bold text-[1.1rem] truncate">
+                            <a href="{{ url_for('tool_detail', slug=tool.slug) }}" class="text-zinc-100 group-hover:text-amber-400 transition-colors">{{ tool.name }}</a>
+                        </h3>
+                        <a href="{{ url_for('category', slug=tool.category.slug) }}" class="text-xs text-zinc-600 font-medium hover:text-amber-400 transition-colors">{{ tool.category.name }}</a>
+                    </div>
+                    <button class="btn-save w-9 h-9 rounded-lg flex items-center justify-center text-zinc-600 hover:text-amber-400 hover:bg-accent-dim transition-all shrink-0" data-tool-id="{{ tool.id }}">
+                        <i class="fa-regular fa-bookmark text-sm"></i>
+                    </button>
+                </div>
+
+                <p class="text-zinc-400 text-[.9rem] leading-relaxed flex-1 mb-5 line-clamp-2">{{ tool.tagline }}</p>
+
+                <div class="flex items-center justify-between pt-4 border-t border-line">
+                    <div class="flex items-center gap-2 text-sm font-semibold text-zinc-200">
+                        <span class="text-amber-400 flex gap-px text-xs">{{ tool.rating|star_rating|safe }}</span>
+                        {{ tool.rating }}
+                        <span class="text-zinc-600 font-normal text-xs">({{ tool.review_count }})</span>
+                    </div>
+                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[.68rem] font-semibold uppercase tracking-wider
+                        {% if tool.pricing == 'Free' %}bg-emerald-500/10 text-emerald-400
+                        {% elif tool.pricing == 'Freemium' %}bg-cyan-500/10 text-cyan-400
+                        {% elif tool.pricing == 'Paid' %}bg-amber-500/10 text-amber-400
+                        {% else %}bg-purple-500/10 text-purple-400{% endif %}">
+                        {{ tool.pricing }}
+                    </span>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════
+     CATEGORIES
+     ════════════════════════════════════════════════════════ -->
+<section class="py-20 border-t border-line">
+    <div class="max-w-7xl mx-auto px-6">
+        <div class="anim-scroll flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-10">
+            <div>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+                    <h2 class="font-display text-3xl sm:text-4xl font-bold tracking-tight">Browse by Category</h2>
+                </div>
+                <p class="text-zinc-500 mt-2 text-[.95rem]">Find the perfect AI tool for your specific need</p>
+            </div>
+            <a href="{{ url_for('tools') }}" class="inline-flex items-center gap-2 text-accent text-sm font-semibold hover:gap-3 transition-all whitespace-nowrap">
+                All categories <i class="fa-solid fa-arrow-right text-xs"></i>
+            </a>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {% for cat in categories %}
+            {% set icon_map = {
+                'text-writing':      ('fa-pen-fancy',    'bg-amber-500/10 text-amber-400'),
+                'image-generation':  ('fa-image',        'bg-pink-500/10 text-pink-400'),
+                'code-development': ('fa-code',         'bg-cyan-500/10 text-cyan-400'),
+                'video-audio':       ('fa-video',        'bg-purple-500/10 text-purple-400'),
+                'productivity':      ('fa-bolt',         'bg-yellow-500/10 text-yellow-400'),
+                'data-analytics':    ('fa-chart-bar',    'bg-emerald-500/10 text-emerald-400'),
+                'design':            ('fa-palette',      'bg-orange-500/10 text-orange-400'),
+                'customer-support':  ('fa-headset',      'bg-red-500/10 text-red-400'),
+            } %}
+            {% set icon_data = icon_map.get(cat.slug, ('fa-cube', 'bg-zinc-500/10 text-zinc-400')) %}
+
+            <a href="{{ url_for('category', slug=cat.slug) }}" class="anim-scroll category-card group bg-surface-700 border border-line rounded-xl p-5 flex items-start gap-4 transition-all duration-300 hover:border-line-hover hover:bg-surface-600 hover:-translate-y-0.5">
+                <div class="w-11 h-11 rounded-lg flex items-center justify-center text-base shrink-0 {{ icon_data[1] }}">
+                    <i class="fa-solid {{ icon_data[0] }}"></i>
+                </div>
+                <div class="min-w-0">
+                    <h4 class="font-display font-bold text-sm text-zinc-100 group-hover:text-amber-400 transition-colors">{{ cat.name }}</h4>
+                    <p class="text-xs text-zinc-600 leading-relaxed mt-1 line-clamp-2">{{ cat.description }}</p>
+                    <span class="text-[.72rem] text-zinc-500 font-medium mt-1.5 block">{{ cat.tools.count() }} tools</span>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════
+     HOW IT WORKS
+     ════════════════════════════════════════════════════════ -->
+<section class="py-20 border-t border-line">
+    <div class="max-w-7xl mx-auto px-6">
+        <div class="anim-scroll text-center mb-14">
+            <div class="flex items-center justify-center gap-2 mb-3">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                <h2 class="font-display text-3xl sm:text-4xl font-bold tracking-tight">How It Works</h2>
+            </div>
+            <p class="text-zinc-500 max-w-md mx-auto">Three simple steps to find your next favorite AI tool</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
+            <div class="anim-scroll relative text-center p-8">
+                <div class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-accent text-black font-display font-extrabold text-sm flex items-center justify-center shadow-lg shadow-amber-500/30">1</div>
+                <div class="w-16 h-16 mx-auto mb-5 rounded-2xl bg-amber-500/10 flex items-center justify-center text-2xl text-amber-400">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </div>
+                <h3 class="font-display font-bold text-lg mb-2">Search &amp; Browse</h3>
+                <p class="text-zinc-500 text-sm leading-relaxed">Explore our curated collection by category, pricing model, or search by name and features.</p>
+                <div class="hidden md:block absolute top-12 -right-4 lg:-right-3 w-8 lg:w-6 border-t-2 border-dashed border-line-hover"></div>
+            </div>
+            <div class="anim-scroll relative text-center p-8">
+                <div class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-accent text-black font-display font-extrabold text-sm flex items-center justify-center shadow-lg shadow-amber-500/30">2</div>
+                <div class="w-16 h-16 mx-auto mb-5 rounded-2xl bg-cyan-500/10 flex items-center justify-center text-2xl text-cyan-400">
+                    <i class="fa-solid fa-scale-balanced"></i>
+                </div>
+                <h3 class="font-display font-bold text-lg mb-2">Compare &amp; Review</h3>
+                <p class="text-zinc-500 text-sm leading-relaxed">Check ratings, pricing, features, and detailed descriptions to make an informed choice.</p>
+                <div class="hidden md:block absolute top-12 -right-4 lg:-right-3 w-8 lg:w-6 border-t-2 border-dashed border-line-hover"></div>
+            </div>
+            <div class="anim-scroll relative text-center p-8">
+                <div class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-accent text-black font-display font-extrabold text-sm flex items-center justify-center shadow-lg shadow-amber-500/30">3</div>
+                <div class="w-16 h-16 mx-auto mb-5 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-2xl text-emerald-400">
+                    <i class="fa-solid fa-bookmark"></i>
+                </div>
+                <h3 class="font-display font-bold text-lg mb-2">Save &amp; Return</h3>
+                <p class="text-zinc-500 text-sm leading-relaxed">Bookmark your favorites to build a personal shortlist you can revisit anytime.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════
+     TOP RATED
+     ════════════════════════════════════════════════════════ -->
+<section class="py-20 border-t border-line">
+    <div class="max-w-7xl mx-auto px-6">
+        <div class="anim-scroll flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-10">
+            <div>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-pink-400"></span>
+                    <h2 class="font-display text-3xl sm:text-4xl font-bold tracking-tight">Top Rated</h2>
+                </div>
+                <p class="text-zinc-500 mt-2 text-[.95rem]">Highest-rated tools loved by the community</p>
+            </div>
+            <a href="{{ url_for('tools', sort='rating') }}" class="inline-flex items-center gap-2 text-accent text-sm font-semibold hover:gap-3 transition-all whitespace-nowrap">
+                See rankings <i class="fa-solid fa-arrow-right text-xs"></i>
+            </a>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {% for tool in top_rated %}
+            <a href="{{ url_for('tool_detail', slug=tool.slug) }}" class="anim-scroll group flex items-center gap-4 bg-surface-700 border border-line rounded-xl p-4 transition-all duration-300 hover:border-line-hover hover:bg-surface-600 hover:-translate-y-0.5">
+                <div class="w-11 h-11 rounded-xl flex items-center justify-center font-display font-extrabold text-base text-white shrink-0" style="background:{{ tool.name|tool_color }}">
+                    {{ tool.name[0] }}
+                </div>
+                <div class="min-w-0 flex-1">
+                    <h4 class="font-display font-bold text-sm text-zinc-100 group-hover:text-amber-400 transition-colors truncate">{{ tool.name }}</h4>
+                    <div class="flex items-center gap-1.5 text-xs mt-0.5">
+                        <span class="text-amber-400 flex gap-px text-[.65rem]">{{ tool.rating|star_rating|safe }}</span>
+                        <span class="text-zinc-500">{{ tool.rating }}</span>
+                    </div>
+                </div>
+                <i class="fa-solid fa-chevron-right text-zinc-700 group-hover:text-amber-400 text-xs transition-colors shrink-0"></i>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+{% endblock %}
+
+
+{% block cta %}
+<section class="relative py-24 overflow-hidden text-center border-t border-line">
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[650px] h-[450px] bg-amber-500/8 rounded-full blur-[100px] pointer-events-none"></div>
+    <div class="relative max-w-7xl mx-auto px-6">
+        <div class="anim-scroll">
+            <h2 class="font-display text-3xl sm:text-4xl font-bold tracking-tight mb-4">Know a Great AI Tool?</h2>
+            <p class="text-zinc-400 max-w-lg mx-auto mb-8 leading-relaxed">Help the community discover new tools. Submit your favorite AI product and we'll review it for inclusion.</p>
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <a href="{{ url_for('submit') }}" class="inline-flex items-center gap-2 px-8 py-3.5 bg-accent hover:bg-accent-hover text-black font-semibold rounded-xl transition-colors shadow-lg shadow-amber-500/20">
+                    <i class="fa-solid fa-plus text-sm"></i> Submit a Tool
+                </a>
+                <a href="{{ url_for('tools') }}" class="inline-flex items-center gap-2 px-8 py-3.5 border border-line hover:border-line-hover text-zinc-300 hover:text-zinc-100 rounded-xl transition-all">
+                    Browse All Tools
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

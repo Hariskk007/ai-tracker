@@ -1,0 +1,286 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard — AI Tools Hub{% endblock %}
+
+{% block content %}
+<section class="pt-10 pb-20">
+    <div class="max-w-7xl mx-auto px-6">
+
+        <div class="flex items-center gap-4 mb-10">
+            <div class="w-12 h-12 rounded-xl bg-accent/10 border border-amber-500/20 flex items-center justify-center">
+                <i class="fa-solid fa-gear text-xl text-accent"></i>
+            </div>
+            <div>
+                <h1 class="font-display text-3xl font-bold tracking-tight">Admin Dashboard</h1>
+                <p class="text-zinc-500 text-sm">Manage AI tools submitted by the community</p>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+            <div class="bg-surface-700 border border-line rounded-2xl p-5">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-[.72rem] font-bold uppercase tracking-wider text-zinc-600">Total Tools</span>
+                    <i class="fa-solid fa-robot text-zinc-600 text-sm"></i>
+                </div>
+                <div class="font-display text-3xl font-extrabold text-zinc-100">{{ stats.total }}</div>
+            </div>
+            <div class="bg-surface-700 border border-line rounded-2xl p-5">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-[.72rem] font-bold uppercase tracking-wider text-zinc-600">Approved</span>
+                    <i class="fa-solid fa-circle-check text-emerald-400 text-sm"></i>
+                </div>
+                <div class="font-display text-3xl font-extrabold text-emerald-400">{{ stats.approved }}</div>
+            </div>
+            <div class="bg-surface-700 border border-line rounded-2xl p-5">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-[.72rem] font-bold uppercase tracking-wider text-zinc-600">Pending Review</span>
+                    <i class="fa-solid fa-clock text-amber-400 text-sm"></i>
+                </div>
+                <div class="font-display text-3xl font-extrabold text-amber-400">{{ stats.pending }}</div>
+            </div>
+            <div class="bg-surface-700 border border-line rounded-2xl p-5">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-[.72rem] font-bold uppercase tracking-wider text-zinc-600">Categories</span>
+                    <i class="fa-solid fa-layer-group text-cyan-400 text-sm"></i>
+                </div>
+                <div class="font-display text-3xl font-extrabold text-cyan-400">{{ stats.categories }}</div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="flex items-center gap-1 mb-8 border-b border-line pb-1">
+            <button onclick="switchTab('pending')" id="tab-pending" class="tab-btn px-5 py-2.5 rounded-t-xl text-sm font-semibold transition-all border-b-2 -mb-px text-amber-400 border-amber-400 bg-amber-500/5">
+                Pending <span class="ml-1.5 text-[.7rem] bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded-full">{{ stats.pending }}</span>
+            </button>
+            <button onclick="switchTab('all')" id="tab-all" class="tab-btn px-5 py-2.5 rounded-t-xl text-sm font-semibold transition-all border-b-2 -mb-px text-zinc-500 border-transparent hover:text-zinc-300">
+                All Tools
+            </button>
+        </div>
+
+        <!-- Pending Submissions -->
+        <div id="panel-pending" class="tab-panel">
+            <h2 class="font-display text-xl font-bold mb-6">Pending Submissions</h2>
+
+            {% if pending %}
+            <div class="space-y-3">
+                {% for tool in pending %}
+                <div class="bg-surface-700 border border-line rounded-2xl p-6 hover:border-line-hover transition-all">
+                    <div class="flex flex-col lg:flex-row lg:items-center gap-4">
+                        <div class="flex items-start gap-4 flex-1 min-w-0">
+                            <div class="w-12 h-12 rounded-xl flex items-center justify-center font-display font-extrabold text-lg text-white shrink-0" style="background:{{ tool.name|tool_color }}">
+                                {{ tool.name[0] }}
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <h3 class="font-display font-bold text-base text-zinc-100">{{ tool.name }}</h3>
+                                <p class="text-zinc-500 text-sm truncate mt-0.5">{{ tool.tagline or 'No tagline' }}</p>
+                                <div class="flex items-center gap-3 mt-2 flex-wrap">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[.68rem] font-semibold
+                                        {% if tool.pricing == 'Free' %}bg-emerald-500/10 text-emerald-400
+                                        {% elif tool.pricing == 'Freemium' %}bg-cyan-500/10 text-cyan-400
+                                        {% elif tool.pricing == 'Paid' %}bg-amber-500/10 text-amber-400
+                                        {% else %}bg-purple-500/10 text-purple-400{% endif %}">
+                                        {{ tool.pricing }}
+                                    </span>
+                                    <a href="{{ tool.website_url }}" target="_blank" class="text-xs text-zinc-600 hover:text-amber-400 transition-colors flex items-center gap-1">
+                                        <i class="fa-solid fa-external-link-alt text-[.6rem]"></i>
+                                        {{ tool.website_url[:50] }}{% if tool.website_url|length > 50 %}...{% endif %}
+                                    </a>
+                                    <span class="text-xs text-zinc-700">Added {{ tool.created_at.strftime('%b %d, %Y') }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 shrink-0">
+                            <form method="POST" action="{{ url_for('admin_approve', tool_id=tool.id) }}">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                                <button type="submit" class="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold rounded-xl transition-all">
+                                    <i class="fa-solid fa-check text-xs"></i>
+                                    Approve
+                                </button>
+                            </form>
+                            <form method="POST" action="{{ url_for('admin_delete', tool_id=tool.id) }}">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                                <button type="submit" class="inline-flex items-center gap-2 px-4 py-2.5 bg-red-950/50 hover:bg-red-900/50 text-red-400 border border-red-900/30 text-sm font-semibold rounded-xl transition-all"
+                                        onclick="return confirm('Are you sure you want to delete &quot;{{ tool.name }}&quot;? This cannot be undone.')">
+                                    <i class="fa-solid fa-trash text-xs"></i>
+                                    Delete
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="flex flex-col items-center justify-center py-16 text-center bg-surface-700 border border-line rounded-2xl">
+                <div class="w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mb-4">
+                    <i class="fa-solid fa-check-double text-2xl text-emerald-400"></i>
+                </div>
+                <h3 class="font-display text-lg font-bold mb-1">All caught up!</h3>
+                <p class="text-zinc-500 text-sm">No pending submissions at the moment.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- All Tools -->
+        <div id="panel-all" class="tab-panel hidden">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                <h2 class="font-display text-xl font-bold">All Tools</h2>
+                <form method="get" class="relative w-full sm:w-72">
+                    <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600 text-sm"></i>
+                    <input type="text" name="q" value="{{ request.args.get('q', '') }}" placeholder="Search tools..." autocomplete="off"
+                           class="w-full h-11 pl-10 pr-4 bg-surface-700 border border-line rounded-xl text-zinc-100 text-sm placeholder:text-zinc-600 outline-none focus:border-amber-500 transition-all">
+                </form>
+            </div>
+
+            {% if all_tools %}
+            <div class="overflow-x-auto rounded-2xl border border-line">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="border-b border-line bg-surface-700">
+                            <th class="text-left px-5 py-3.5 text-[.7rem] font-bold uppercase tracking-wider text-zinc-600">Tool</th>
+                            <th class="text-left px-5 py-3.5 text-[.7rem] font-bold uppercase tracking-wider text-zinc-600 hidden sm:table-cell">Category</th>
+                            <th class="text-left px-5 py-3.5 text-[.7rem] font-bold uppercase tracking-wider text-zinc-600 hidden md:table-cell">Pricing</th>
+                            <th class="text-left px-5 py-3.5 text-[.7rem] font-bold uppercase tracking-wider text-zinc-600 hidden lg:table-cell">Rating</th>
+                            <th class="text-left px-5 py-3.5 text-[.7rem] font-bold uppercase tracking-wider text-zinc-600 hidden lg:table-cell">Date</th>
+                            <th class="text-left px-5 py-3.5 text-[.7rem] font-bold uppercase tracking-wider text-zinc-600">Status</th>
+                            <th class="text-right px-5 py-3.5 text-[.7rem] font-bold uppercase tracking-wider text-zinc-600">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for tool in all_tools %}
+                        <tr class="border-b border-line/50 hover:bg-surface-700/50 transition-colors">
+                            <td class="px-5 py-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-9 h-9 rounded-lg flex items-center justify-center font-display font-bold text-sm text-white shrink-0" style="background:{{ tool.name|tool_color }}">
+                                        {{ tool.name[0] }}
+                                    </div>
+                                    <div class="min-w-0">
+                                        <a href="{{ url_for('tool_detail', slug=tool.slug) }}" class="font-semibold text-zinc-100 hover:text-amber-400 transition-colors block truncate">{{ tool.name }}</a>
+                                        <span class="text-xs text-zinc-600">{{ tool.tagline[:40] if tool.tagline else '' }}</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-5 py-4 hidden sm:table-cell">
+                                <span class="text-zinc-400">{{ tool.category.name }}</span>
+                            </td>
+                            <td class="px-5 py-4 hidden md:table-cell">
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[.68rem] font-semibold
+                                    {% if tool.pricing == 'Free' %}bg-emerald-500/10 text-emerald-400
+                                    {% elif tool.pricing == 'Freemium' %}bg-cyan-500/10 text-cyan-400
+                                    {% elif tool.pricing == 'Paid' %}bg-amber-500/10 text-amber-400
+                                    {% else %}bg-purple-500/10 text-purple-400{% endif %}">
+                                    {{ tool.pricing }}
+                                </span>
+                            </td>
+                            <td class="px-5 py-4 hidden lg:table-cell">
+                                <div class="flex items-center gap-1.5">
+                                    <span class="text-amber-400 flex gap-px text-[.65rem]">{{ tool.rating|star_rating|safe }}</span>
+                                    <span class="text-zinc-300 font-medium">{{ tool.rating }}</span>
+                                </div>
+                            </td>
+                            <td class="px-5 py-4 hidden lg:table-cell text-zinc-600">{{ tool.created_at.strftime('%b %d, %Y') }}</td>
+                            <td class="px-5 py-4">
+                                {% if tool.is_approved %}
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-[.68rem] font-semibold text-emerald-400">
+                                    <i class="fa-solid fa-circle text-[.4rem]"></i> Live
+                                </span>
+                                {% else %}
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-500/10 border border-amber-500/20 rounded-full text-[.68rem] font-semibold text-amber-400">
+                                    <i class="fa-solid fa-clock text-[.4rem]"></i> Pending
+                                </span>
+                                {% endif %}
+                            </td>
+                            <td class="px-5 py-4 text-right">
+                                <div class="flex items-center justify-end gap-2">
+                                    {% if not tool.is_approved %}
+                                    <form method="POST" action="{{ url_for('admin_approve', tool_id=tool.id) }}">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                                        <button type="submit" class="w-8 h-8 rounded-lg flex items-center justify-center text-emerald-400 hover:bg-emerald-500/10 transition-all" title="Approve">
+                                            <i class="fa-solid fa-check text-xs"></i>
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                    <form method="POST" action="{{ url_for('admin_delete', tool_id=tool.id) }}">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                                        <button type="submit" class="w-8 h-8 rounded-lg flex items-center justify-center text-red-400 hover:bg-red-500/10 transition-all" title="Delete"
+                                                onclick="return confirm('Delete &quot;{{ tool.name }}&quot;? This cannot be undone.')">
+                                            <i class="fa-solid fa-trash text-xs"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% if all_tools_pagination and all_tools_pagination.pages > 1 %}
+            <div class="flex items-center justify-center gap-2 mt-8">
+                {% if all_tools_pagination.has_prev %}
+                <a href="{{ url_for('admin') }}?page={{ all_tools_pagination.prev_num }}&q={{ request.args.get('q', '') }}" class="w-10 h-10 flex items-center justify-center rounded-xl border border-line text-zinc-500 hover:text-zinc-100 hover:border-line-hover transition-all">
+                    <i class="fa-solid fa-chevron-left text-xs"></i>
+                </a>
+                {% endif %}
+                {% for p in all_tools_pagination.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+                    {% if p %}
+                    <a href="{{ url_for('admin') }}?page={{ p }}&q={{ request.args.get('q', '') }}"
+                       class="w-10 h-10 flex items-center justify-center rounded-xl text-sm font-medium transition-all
+                              {% if p == all_tools_pagination.page %}bg-accent text-black border border-accent{% else %}border border-line text-zinc-500 hover:text-zinc-100 hover:border-line-hover{% endif %}">
+                        {{ p }}
+                    </a>
+                    {% else %}
+                    <span class="w-10 h-10 flex items-center justify-center text-zinc-700">…</span>
+                    {% endif %}
+                {% endfor %}
+                {% if all_tools_pagination.has_next %}
+                <a href="{{ url_for('admin') }}?page={{ all_tools_pagination.next_num }}&q={{ request.args.get('q', '') }}" class="w-10 h-10 flex items-center justify-center rounded-xl border border-line text-zinc-500 hover:text-zinc-100 hover:border-line-hover transition-all">
+                    <i class="fa-solid fa-chevron-right text-xs"></i>
+                </a>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            {% else %}
+            <div class="flex flex-col items-center justify-center py-16 text-center bg-surface-700 border border-line rounded-2xl">
+                <div class="w-16 h-16 rounded-2xl bg-surface-600 border border-line flex items-center justify-center mb-4">
+                    <i class="fa-solid fa-database text-2xl text-zinc-600"></i>
+                </div>
+                <h3 class="font-display text-lg font-bold mb-1">No tools found</h3>
+                <p class="text-zinc-500 text-sm">The database is empty.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Quick links -->
+        <div class="mt-10 flex flex-wrap gap-4">
+            <a href="{{ url_for('tools') }}" class="inline-flex items-center gap-2 px-5 py-3 bg-surface-700 border border-line hover:border-line-hover text-zinc-300 hover:text-zinc-100 rounded-xl transition-all text-sm font-medium">
+                <i class="fa-solid fa-grid-2 text-sm"></i> View All Tools
+            </a>
+            <a href="{{ url_for('submit') }}" class="inline-flex items-center gap-2 px-5 py-3 bg-surface-700 border border-line hover:border-line-hover text-zinc-300 hover:text-zinc-100 rounded-xl transition-all text-sm font-medium">
+                <i class="fa-solid fa-plus text-sm"></i> Submit New Tool
+            </a>
+        </div>
+    </div>
+</section>
+
+<script>
+function switchTab(tab) {
+    document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.add('hidden'); });
+    document.querySelectorAll('.tab-btn').forEach(function(b) {
+        b.classList.remove('text-amber-400', 'border-amber-400', 'bg-amber-500/5');
+        b.classList.add('text-zinc-500', 'border-transparent');
+        b.classList.remove('-mb-px');
+    });
+    document.getElementById('panel-' + tab).classList.remove('hidden');
+    var btn = document.getElementById('tab-' + tab);
+    btn.classList.remove('text-zinc-500', 'border-transparent');
+    btn.classList.add('text-amber-400', 'border-amber-400', 'bg-amber-500/5', '-mb-px');
+    history.replaceState(null, '', '?tab=' + tab);
+}
+var params = new URLSearchParams(window.location.search);
+if (params.get('tab') === 'all') switchTab('all');
+else if (params.get('tab') === 'pending') switchTab('pending');
+</script>
+{% endblock %}

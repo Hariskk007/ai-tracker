@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+
+{% block title %}Browse AI Tools — AI Tools Hub{% endblock %}
+
+{% block content %}
+<section class="pt-10 pb-20">
+    <div class="max-w-7xl mx-auto px-6">
+        <div class="flex flex-col lg:flex-row gap-8">
+
+            <!-- ═══ SIDEBAR ═══ -->
+            <aside class="w-full lg:w-64 shrink-0">
+                <div class="sticky top-[88px]">
+
+                    <!-- Search -->
+                    <form action="{{ url_for('tools') }}" method="get" class="relative mb-6">
+                        <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600 text-sm"></i>
+                        <input type="text" name="q" value="{{ q }}" placeholder="Search..." autocomplete="off"
+                            class="w-full h-11 pl-10 pr-4 bg-surface-700 border border-line rounded-xl text-zinc-100 text-sm placeholder:text-zinc-600 outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/20 transition-all">
+                    </form>
+
+                    <!-- Active filters -->
+                    {% if q or active_category or active_pricing %}
+                    <div class="mb-6 p-4 bg-surface-700 border border-line rounded-xl">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-xs font-bold uppercase tracking-wider text-zinc-600">Active Filters</span>
+                            <a href="{{ url_for('tools') }}" class="text-xs text-accent hover:text-amber-400 font-medium transition-colors">Clear all</a>
+                        </div>
+                        <div class="flex flex-wrap gap-2">
+                            {% if q %}
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-accent/10 border border-amber-500/20 rounded-full text-[.7rem] font-semibold text-accent">
+                                "{{ q }}"
+                                <a href="{{ url_for('tools', category=active_category.slug if active_category else '', pricing=active_pricing, sort=active_sort) }}" class="hover:text-amber-400 ml-0.5">&times;</a>
+                            </span>
+                            {% endif %}
+                            {% if active_category %}
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-cyan-500/10 border border-cyan-500/20 rounded-full text-[.7rem] font-semibold text-cyan-400">
+                                {{ active_category.name }}
+                                <a href="{{ url_for('tools', q=q, pricing=active_pricing, sort=active_sort) }}" class="hover:text-cyan-400 ml-0.5">&times;</a>
+                            </span>
+                            {% endif %}
+                            {% if active_pricing %}
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-purple-500/10 border border-purple-500/20 rounded-full text-[.7rem] font-semibold text-purple-400">
+                                {{ active_pricing }}
+                                <a href="{{ url_for('tools', q=q, category=active_category.slug if active_category else '', sort=active_sort) }}" class="hover:text-purple-400 ml-0.5">&times;</a>
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Category filter -->
+                    <div class="mb-6">
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-zinc-600 mb-3">Category</h3>
+                        <div class="space-y-1">
+                            <a href="{{ url_for('tools', q=q, pricing=active_pricing, sort=active_sort) }}"
+                               class="flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-all
+                                      {% if not active_category %}text-zinc-100 bg-surface-700 border border-line{% else %}text-zinc-500 hover:text-zinc-300 hover:bg-surface-700/50{% endif %}">
+                                <span>All Categories</span>
+                                <span class="text-xs text-zinc-600">{{ (total_tools or '')}} {{""}}</span>
+                            </a>
+                            {% for cat in categories %}
+                            <a href="{{ url_for('tools', q=q, category=cat.slug, pricing=active_pricing, sort=active_sort) }}"
+                               class="flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-all
+                                      {% if active_category and active_category.slug == cat.slug %}text-zinc-100 bg-surface-700 border border-line{% else %}text-zinc-500 hover:text-zinc-300 hover:bg-surface-700/50{% endif %}">
+                                <span>{{ cat.name }}</span>
+                                <span class="text-xs text-zinc-600">{{ cat.tools.count() }}</span>
+                            </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Pricing filter -->
+                    <div class="mb-6">
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-zinc-600 mb-3">Pricing</h3>
+                        <div class="space-y-1">
+                            {% for p in ['Free', 'Freemium', 'Paid', 'Enterprise'] %}
+                            <a href="{{ url_for('tools', q=q, category=active_category.slug if active_category else '', pricing=p, sort=active_sort) }}"
+                               class="flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-all
+                                      {% if active_pricing == p %}text-zinc-100 bg-surface-700 border border-line{% else %}text-zinc-500 hover:text-zinc-300 hover:bg-surface-700/50{% endif %}">
+                                <span class="flex items-center gap-2">
+                                    {% if p == 'Free' %}<span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                                    {% elif p == 'Freemium' %}<span class="w-2 h-2 rounded-full bg-cyan-400"></span>
+                                    {% elif p == 'Paid' %}<span class="w-2 h-2 rounded-full bg-amber-400"></span>
+                                    {% else %}<span class="w-2 h-2 rounded-full bg-purple-400"></span>{% endif %}
+                                    {{ p }}
+                                </span>
+                            </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- ═══ MAIN CONTENT ═══ -->
+            <div class="flex-1 min-w-0">
+
+                <!-- Toolbar -->
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+                    <div>
+                        <h1 class="font-display text-2xl sm:text-3xl font-bold tracking-tight">
+                            {% if q %}Results for "{{ q }}"{% elif active_category %}{{ active_category.name }}{% else %}All AI Tools{% endif %}
+                        </h1>
+                        <p class="text-zinc-500 text-sm mt-1">
+                            {{ pagination.total }} tool{{ 's' if pagination.total != 1 else '' }}
+                            {% if active_pricing %} · {{ active_pricing }}{% endif %}
+                        </p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <select onchange="window.location.href=this.value" class="h-10 pl-4 pr-10 bg-surface-700 border border-line rounded-xl text-sm text-zinc-300 outline-none focus:border-amber-500 cursor-pointer appearance-none" style="background-image:url('data:image/svg+xml;charset=utf-8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 fill=%22none%22 viewBox=%220 0 20 20%22%3E%3Cpath stroke=%22%236b7280%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22 stroke-width=%221.5%22 d=%22m6 8 4 4 4-4%22/%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right .6rem center;background-size:1.25em;">
+                            <option value="{{ url_for('tools', q=q, category=active_category.slug if active_category else '', pricing=active_pricing, sort='newest') }}" {% if active_sort=='newest' %}selected{% endif %}>Newest</option>
+                            <option value="{{ url_for('tools', q=q, category=active_category.slug if active_category else '', pricing=active_pricing, sort='rating') }}" {% if active_sort=='rating' %}selected{% endif %}>Top Rated</option>
+                            <option value="{{ url_for('tools', q=q, category=active_category.slug if active_category else '', pricing=active_pricing, sort='name') }}" {% if active_sort=='name' %}selected{% endif %}>A–Z</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Tool grid -->
+                {% if tools %}
+                <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+                    {% for tool in tools %}
+                    <article class="anim-scroll group bg-surface-700 border border-line rounded-2xl p-6 flex flex-col transition-all duration-300 hover:border-line-hover hover:bg-surface-600 hover:-translate-y-1 hover:shadow-[0_20px_50px_-12px_rgba(0,0,0,.6)]">
+                        <div class="flex items-start gap-3.5 mb-3.5">
+                            <div class="w-12 h-12 rounded-xl flex items-center justify-center font-display font-extrabold text-lg text-white shrink-0" style="background:{{ tool.name|tool_color }}">
+                                {{ tool.name[0] }}
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <h3 class="font-display font-bold text-[1.05rem] truncate">
+                                    <a href="{{ url_for('tool_detail', slug=tool.slug) }}" class="text-zinc-100 group-hover:text-amber-400 transition-colors">{{ tool.name }}</a>
+                                </h3>
+                                <a href="{{ url_for('category', slug=tool.category.slug) }}" class="text-xs text-zinc-600 font-medium hover:text-amber-400 transition-colors">{{ tool.category.name }}</a>
+                            </div>
+                            <button class="btn-save w-9 h-9 rounded-lg flex items-center justify-center text-zinc-600 hover:text-amber-400 hover:bg-accent-dim transition-all shrink-0" data-tool-id="{{ tool.id }}">
+                                <i class="fa-regular fa-bookmark text-sm"></i>
+                            </button>
+                        </div>
+                        <p class="text-zinc-400 text-[.88rem] leading-relaxed flex-1 mb-5 line-clamp-2">{{ tool.tagline }}</p>
+                        <div class="flex items-center justify-between pt-4 border-t border-line">
+                            <div class="flex items-center gap-2 text-sm font-semibold text-zinc-200">
+                                <span class="text-amber-400 flex gap-px text-xs">{{ tool.rating|star_rating|safe }}</span>
+                                {{ tool.rating }}
+                                <span class="text-zinc-600 font-normal text-xs">({{ tool.review_count }})</span>
+                            </div>
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[.68rem] font-semibold uppercase tracking-wider
+                                {% if tool.pricing == 'Free' %}bg-emerald-500/10 text-emerald-400
+                                {% elif tool.pricing == 'Freemium' %}bg-cyan-500/10 text-cyan-400
+                                {% elif tool.pricing == 'Paid' %}bg-amber-500/10 text-amber-400
+                                {% else %}bg-purple-500/10 text-purple-400{% endif %}">
+                                {{ tool.pricing }}
+                            </span>
+                        </div>
+                    </article>
+                    {% endfor %}
+                </div>
+
+                <!-- Pagination -->
+                {% if pagination.pages > 1 %}
+                <div class="flex items-center justify-center gap-2 mt-12">
+                    {% if pagination.has_prev %}
+                    <a href="{{ url_for('tools', q=q, category=active_category.slug if active_category else '', pricing=active_pricing, sort=active_sort, page=pagination.prev_num) }}"
+                       class="w-10 h-10 flex items-center justify-center rounded-xl border border-line text-zinc-500 hover:text-zinc-100 hover:border-line-hover transition-all">
+                        <i class="fa-solid fa-chevron-left text-xs"></i>
+                    </a>
+                    {% endif %}
+
+                    {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+                        {% if p %}
+                        <a href="{{ url_for('tools', q=q, category=active_category.slug if active_category else '', pricing=active_pricing, sort=active_sort, page=p) }}"
+                           class="w-10 h-10 flex items-center justify-center rounded-xl text-sm font-medium transition-all
+                                  {% if p == pagination.page %}bg-accent text-black border border-accent{% else %}border border-line text-zinc-500 hover:text-zinc-100 hover:border-line-hover{% endif %}">
+                            {{ p }}
+                        </a>
+                        {% else %}
+                        <span class="w-10 h-10 flex items-center justify-center text-zinc-700">…</span>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if pagination.has_next %}
+                    <a href="{{ url_for('tools', q=q, category=active_category.slug if active_category else '', pricing=active_pricing, sort=active_sort, page=pagination.next_num) }}"
+                       class="w-10 h-10 flex items-center justify-center rounded-xl border border-line text-zinc-500 hover:text-zinc-100 hover:border-line-hover transition-all">
+                        <i class="fa-solid fa-chevron-right text-xs"></i>
+                    </a>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                {% else %}
+                <!-- Empty state -->
+                <div class="flex flex-col items-center justify-center py-24 text-center">
+                    <div class="w-20 h-20 rounded-2xl bg-surface-700 border border-line flex items-center justify-center mb-6">
+                        <i class="fa-solid fa-magnifying-glass text-3xl text-zinc-600"></i>
+                    </div>
+                    <h3 class="font-display text-xl font-bold mb-2">No tools found</h3>
+                    <p class="text-zinc-500 text-sm max-w-sm">Try adjusting your filters or search term, or browse all tools.</p>
+                    <a href="{{ url_for('tools') }}" class="mt-6 inline-flex items-center gap-2 px-6 py-3 bg-accent hover:bg-accent-hover text-black font-semibold rounded-lg transition-colors">
+                        Browse all tools
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

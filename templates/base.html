@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth antialiased">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Discover, compare, and save the best AI tools across every category. Curated directory with reviews and pricing transparency.">
+    <meta name="theme-color" content="#09090b">
+    <meta property="og:title" content="{% block og_title %}AI Tools Hub — Discover the Best AI Tools{% endblock %}">
+    <meta property="og:description" content="Find the right AI tool in seconds. Compare pricing, check ratings, and save your shortlist—all in one beautifully designed hub.">
+    <meta property="og:type" content="website">
+    <title>{% block title %}AI Tools Hub{% endblock %}</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23f59e0b'/><text x='50' y='68' font-family='system-ui' font-size='50' font-weight='900' text-anchor='middle' fill='%23000'>AI</text></svg>">
+
+    <!-- Tailwind CSS v3 CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                colors: {
+                    surface: {
+                        900: '#09090b',
+                        800: '#111113',
+                        700: '#16161a',
+                        600: '#1c1c21',
+                        500: '#222228',
+                    },
+                    accent: {
+                        DEFAULT: '#f59e0b',
+                        hover:   '#d97706',
+                        dim:     'rgba(245,158,11,.12)',
+                    },
+                    line: '#27272a',
+                    'line-hover': '#3f3f46',
+                },
+                fontFamily: {
+                    display: ['"Space Grotesk"', 'sans-serif'],
+                    body:    ['"DM Sans"', 'sans-serif'],
+                },
+                animation: {
+                    'glow': 'pulse-glow 6s ease-in-out infinite',
+                    'float': 'float 5s ease-in-out infinite',
+                },
+            },
+        },
+    }
+    </script>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Space+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Custom CSS layer -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body class="font-body bg-surface-900 text-zinc-100 min-h-screen overflow-x-hidden no-select">
+
+    <!-- ════════════ NAVBAR ════════════ -->
+    <header class="sticky top-0 z-50">
+        <nav class="bg-surface-900/80 backdrop-blur-2xl border-b border-line">
+            <div class="max-w-7xl mx-auto px-6 flex items-center justify-between h-[68px] gap-4">
+                <!-- Logo -->
+                <a href="{{ url_for('index') }}" class="flex items-center gap-2.5 shrink-0 group">
+                    <span class="w-9 h-9 rounded-xl bg-accent flex items-center justify-center text-black text-xs font-extrabold font-display transition-transform group-hover:scale-110">AI</span>
+                    <span class="font-display text-lg font-extrabold tracking-tight text-zinc-100">Tools<span class="text-accent">Hub</span></span>
+                </a>
+
+                <!-- Desktop navigation -->
+                <div class="hidden md:flex items-center gap-1">
+                    <a href="{{ url_for('index') }}"
+                       class="px-4 py-2 rounded-xl text-sm font-medium transition-all
+                              {% if request.endpoint == 'index' %}text-zinc-100 bg-white/5 nav-active-line{% else %}text-zinc-400 hover:text-zinc-100 hover:bg-white/5{% endif %}">
+                        Home
+                    </a>
+                    <a href="{{ url_for('tools') }}"
+                       class="px-4 py-2 rounded-xl text-sm font-medium transition-all
+                              {% if request.endpoint in ('tools', 'category') %}text-zinc-100 bg-white/5 nav-active-line{% else %}text-zinc-400 hover:text-zinc-100 hover:bg-white/5{% endif %}">
+                        Browse
+                    </a>
+                    <a href="{{ url_for('submit') }}"
+                       class="px-4 py-2 rounded-xl text-sm font-medium transition-all
+                              {% if request.endpoint == 'submit' %}text-zinc-100 bg-white/5 nav-active-line{% else %}text-zinc-400 hover:text-zinc-100 hover:bg-white/5{% endif %}">
+                        Submit
+                    </a>
+                </div>
+
+                <!-- Right actions -->
+                <div class="flex items-center gap-2">
+                    <!-- Search shortcut -->
+                    <button onclick="document.getElementById('navSearch').focus()" class="w-10 h-10 rounded-xl flex items-center justify-center text-zinc-500 hover:text-zinc-100 hover:bg-white/5 transition-all md:hidden" aria-label="Search">
+                        <i class="fa-solid fa-magnifying-glass text-sm"></i>
+                    </button>
+
+                    <!-- Favorites -->
+                    <a href="{{ url_for('favorites') }}" class="relative w-10 h-10 rounded-xl flex items-center justify-center text-zinc-500 hover:text-amber-400 hover:bg-accent/10 transition-all" title="Saved Tools" aria-label="Saved Tools">
+                        <i class="fa-regular fa-bookmark text-[1.05rem]"></i>
+                        <span id="favCount" class="hidden absolute -top-0.5 -right-0.5 bg-accent text-black text-[.6rem] font-bold w-4.5 h-4.5 rounded-full items-center justify-center leading-none">0</span>
+                    </a>
+
+                    <!-- Mobile toggle -->
+                    <button id="mobileToggle" class="md:hidden w-10 h-10 rounded-xl flex items-center justify-center text-zinc-400 hover:text-zinc-100 transition-all" aria-label="Menu" aria-expanded="false">
+                        <i class="fa-solid fa-bars text-lg"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Desktop search bar -->
+            <div class="hidden md:block border-t border-line/50">
+                <div class="max-w-7xl mx-auto px-6 py-2.5">
+                    <form action="{{ url_for('tools') }}" method="get" class="relative max-w-md">
+                        <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600 text-sm"></i>
+                        <input type="text" id="navSearch" name="q" placeholder="Quick search any tool..." autocomplete="off"
+                               class="w-full h-10 pl-11 pr-4 bg-surface-700/60 border border-line rounded-xl text-sm text-zinc-100 placeholder:text-zinc-600 outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/15 transition-all">
+                    </form>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Mobile drawer -->
+        <div id="mobileNav" class="hidden fixed inset-0 top-[68px] bg-surface-900/98 backdrop-blur-2xl z-40 md:hidden flex-col" role="dialog" aria-label="Navigation menu">
+            <div class="flex flex-col p-6 gap-1 overflow-y-auto">
+                <!-- Mobile search -->
+                <form action="{{ url_for('tools') }}" method="get" class="relative mb-4">
+                    <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600 text-sm"></i>
+                    <input type="text" name="q" placeholder="Search tools..." autocomplete="off"
+                           class="w-full h-12 pl-11 pr-4 bg-surface-700 border border-line rounded-xl text-zinc-100 placeholder:text-zinc-600 outline-none focus:border-amber-500 transition-all">
+                </form>
+
+                <a href="{{ url_for('index') }}" class="flex items-center gap-3 px-4 py-3.5 rounded-xl text-zinc-400 hover:text-zinc-100 hover:bg-white/5 font-medium transition-all">
+                    <i class="fa-solid fa-home w-5 text-center text-zinc-600"></i> Home
+                </a>
+                <a href="{{ url_for('tools') }}" class="flex items-center gap-3 px-4 py-3.5 rounded-xl text-zinc-400 hover:text-zinc-100 hover:bg-white/5 font-medium transition-all">
+                    <i class="fa-solid fa-grid-2 w-5 text-center text-zinc-600"></i> Browse Tools
+                </a>
+                <div class="my-2 border-t border-line"></div>
+                <span class="px-4 py-2 text-[.7rem] font-bold uppercase tracking-wider text-zinc-700">Categories</span>
+                {% for cat in categories %}
+                <a href="{{ url_for('category', slug=cat.slug) }}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-zinc-400 hover:text-zinc-100 hover:bg-white/5 font-medium transition-all">
+                    <i class="fa-solid {{ cat.icon }} w-5 text-center text-zinc-600"></i> {{ cat.name }}
+                </a>
+                {% endfor %}
+                <div class="my-2 border-t border-line"></div>
+                <a href="{{ url_for('submit') }}" class="flex items-center gap-3 px-4 py-3.5 rounded-xl text-zinc-400 hover:text-zinc-100 hover:bg-white/5 font-medium transition-all">
+                    <i class="fa-solid fa-plus w-5 text-center text-zinc-600"></i> Submit a Tool
+                </a>
+                <a href="{{ url_for('favorites') }}" class="flex items-center gap-3 px-4 py-3.5 rounded-xl text-zinc-400 hover:text-zinc-100 hover:bg-white/5 font-medium transition-all">
+                    <i class="fa-regular fa-bookmark w-5 text-center text-zinc-600"></i> Saved Tools
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- ════════════ FLASH MESSAGES ════════════ -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div id="flashContainer" class="fixed top-[88px] right-6 z-[2000] flex flex-col gap-3 max-w-sm w-full">
+        {% for category, message in messages %}
+        <div class="flash-msg flex items-start gap-3 px-5 py-4 rounded-2xl text-sm font-medium shadow-2xl
+            {% if category == 'success' %}bg-emerald-950/90 text-emerald-300 border border-emerald-800/50 backdrop-blur-xl
+            {% elif category == 'error' %}bg-red-950/90 text-red-300 border border-red-800/50 backdrop-blur-xl
+            {% else %}bg-surface-700/90 text-zinc-100 border border-line backdrop-blur-xl{% endif %}">
+            <i class="fa-solid {% if category == 'success' %}fa-circle-check text-emerald-400{% elif category == 'error' %}fa-circle-exclamation text-red-400{% else %}fa-info-circle text-cyan-400{% endif %} mt-0.5 shrink-0 text-base"></i>
+            <span class="flex-1 leading-relaxed">{{ message }}</span>
+            <button onclick="dismissFlash(this)" class="ml-auto opacity-50 hover:opacity-100 text-base leading-none shrink-0 mt-0.5" aria-label="Dismiss">&times;</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <!-- ════════════ MAIN CONTENT ════════════ -->
+    <main class="relative z-[1]">
+    {% if error_404 %}
+        <div class="flex flex-col items-center justify-center min-h-[60vh] text-center px-6">
+            <div class="font-display text-7xl sm:text-8xl font-black bg-gradient-to-br from-amber-400 to-orange-500 bg-clip-text text-transparent leading-none mb-4">404</div>
+            <h2 class="font-display text-2xl sm:text-3xl font-bold mb-3">Page Not Found</h2>
+            <p class="text-zinc-400 mb-8 max-w-md">The page you're looking for doesn't exist or has been moved.</p>
+            <a href="{{ url_for('index') }}" class="inline-flex items-center gap-2 px-6 py-3 bg-accent hover:bg-accent-hover text-black font-semibold rounded-xl transition-all shadow-lg shadow-amber-500/20">
+                <i class="fa-solid fa-arrow-left text-sm"></i> Back to Home
+            </a>
+        </div>
+    {% else %}
+        {% block content %}{% endblock %}
+    {% endif %}
+    </main>
+
+    <!-- ════════════ FOOTER ════════════ -->
+    {% block cta %}{% endblock %}
+
+    <footer class="relative z-[1] border-t border-line mt-20">
+        <div class="max-w-7xl mx-auto px-6 pt-16 pb-8">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-10 mb-14">
+                <div class="col-span-2 md:col-span-1">
+                    <a href="{{ url_for('index') }}" class="flex items-center gap-2.5 mb-4 group">
+                        <span class="w-8 h-8 rounded-lg bg-accent flex items-center justify-center text-black text-xs font-extrabold font-display transition-transform group-hover:scale-110">AI</span>
+                        <span class="font-display text-base font-extrabold tracking-tight">Tools<span class="text-accent">Hub</span></span>
+                    </a>
+                    <p class="text-sm text-zinc-500 leading-relaxed max-w-[260px]">The curated directory for discovering, comparing, and choosing the right AI tools for your workflow.</p>
+                </div>
+                <div>
+                    <h4 class="text-[.7rem] font-bold uppercase tracking-wider text-zinc-700 mb-4">Explore</h4>
+                    <a href="{{ url_for('tools') }}" class="block text-sm text-zinc-400 hover:text-amber-400 py-1.5 transition-colors">All Tools</a>
+                    <a href="{{ url_for('tools', sort='rating') }}" class="block text-sm text-zinc-400 hover:text-amber-400 py-1.5 transition-colors">Top Rated</a>
+                    <a href="{{ url_for('tools', pricing='Free') }}" class="block text-sm text-zinc-400 hover:text-emerald-400 py-1.5 transition-colors">Free Tools</a>
+                    <a href="{{ url_for('tools', pricing='Freemium') }}" class="block text-sm text-zinc-400 hover:text-cyan-400 py-1.5 transition-colors">Freemium</a>
+                </div>
+                <div>
+                    <h4 class="text-[.7rem] font-bold uppercase tracking-wider text-zinc-700 mb-4">Categories</h4>
+                    {% for cat in categories[:5] %}
+                    <a href="{{ url_for('category', slug=cat.slug) }}" class="block text-sm text-zinc-400 hover:text-amber-400 py-1.5 transition-colors">{{ cat.name }}</a>
+                    {% endfor %}
+                </div>
+                <div>
+                    <h4 class="text-[.7rem] font-bold uppercase tracking-wider text-zinc-700 mb-4">Platform</h4>
+                    <a href="{{ url_for('submit') }}" class="block text-sm text-zinc-400 hover:text-amber-400 py-1.5 transition-colors">Submit a Tool</a>
+                    <a href="{{ url_for('favorites') }}" class="block text-sm text-zinc-400 hover:text-amber-400 py-1.5 transition-colors">Saved Tools</a>
+                    <a href="{{ url_for('tools', sort='newest') }}" class="block text-sm text-zinc-400 hover:text-amber-400 py-1.5 transition-colors">Newest</a>
+                </div>
+            </div>
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-8 border-t border-line text-xs text-zinc-600">
+                <span>&copy; {{ now.year }} AI Tools Hub. All rights reserved.</span>
+                <span class="flex items-center gap-1.5">Built with <i class="fa-brands fa-python text-[.7rem]"></i> Flask &amp; <i class="fa-solid fa-database text-[.65rem]"></i> SQLAlchemy</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ════════════ TOAST NOTIFICATION ════════════ -->
+    <div id="toast" class="fixed bottom-8 left-1/2 z-[3000] glass px-6 py-3.5 rounded-2xl text-sm font-medium shadow-2xl flex items-center gap-2.5">
+        <i class="fa-solid fa-bookmark text-accent text-sm"></i>
+        <span id="toastText">Saved!</span>
+    </div>
+
+    <!-- ════════════ GLOBAL JAVASCRIPT ════════════ -->
+    <script>
+    (function(){
+        /* ── Mobile menu ── */
+        var tog = document.getElementById('mobileToggle');
+        var nav = document.getElementById('mobileNav');
+        if (tog && nav) {
+            tog.addEventListener('click', function() {
+                var open = nav.classList.toggle('hidden');
+                if (!open) nav.classList.add('flex');
+                else nav.classList.remove('flex');
+                var icon = tog.querySelector('i');
+                icon.classList.toggle('fa-bars');
+                icon.classList.toggle('fa-xmark');
+                tog.setAttribute('aria-expanded', !open);
+            });
+            nav.querySelectorAll('a').forEach(function(a) {
+                a.addEventListener('click', function() {
+                    nav.classList.add('hidden');
+                    nav.classList.remove('flex');
+                    var icon = tog.querySelector('i');
+                    icon.classList.add('fa-bars');
+                    icon.classList.remove('fa-xmark');
+                    tog.setAttribute('aria-expanded', 'false');
+                });
+            });
+        }
+
+        /* ── Scroll-triggered animations ── */
+        if ('IntersectionObserver' in window) {
+            var obs = new IntersectionObserver(function(entries) {
+                entries.forEach(function(e) {
+                    if (e.isIntersecting) {
+                        e.target.classList.add('visible');
+                        obs.unobserve(e.target);
+                    }
+                });
+            }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+            document.querySelectorAll('.anim-scroll').forEach(function(el) { obs.observe(el); });
+        } else {
+            document.querySelectorAll('.anim-scroll').forEach(function(el) { el.classList.add('visible'); });
+        }
+
+        /* ── Favorite toggle ── */
+        document.addEventListener('click', function(e) {
+            var btn = e.target.closest('.btn-save');
+            if (!btn) return;
+            e.preventDefault();
+            e.stopPropagation();
+            var tid = btn.dataset.toolId;
+            if (!tid) return;
+            fetch('/favorites/' + tid, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            }).then(function(r) { return r.json(); })
+            .then(function(d) {
+                if (d.action === 'added') {
+                    btn.classList.add('saved');
+                    btn.innerHTML = '<i class="fa-solid fa-bookmark text-sm"></i>';
+                    showToast('Saved to favorites');
+                } else {
+                    btn.classList.remove('saved');
+                    btn.innerHTML = '<i class="fa-regular fa-bookmark text-sm"></i>';
+                    showToast('Removed from favorites');
+                }
+                updCount(d.count);
+            }).catch(function() { showToast('Something went wrong'); });
+        });
+
+        /* ── Toast ── */
+        var tt = null;
+        function showToast(t) {
+            var el = document.getElementById('toast');
+            var tx = document.getElementById('toastText');
+            if (!el) return;
+            tx.textContent = t;
+            el.classList.add('show');
+            clearTimeout(tt);
+            tt = setTimeout(function() { el.classList.remove('show'); }, 2800);
+        }
+
+        /* ── Favorites counter ── */
+        function updCount(c) {
+            var b = document.getElementById('favCount');
+            if (!b) return;
+            if (c > 0) {
+                b.textContent = c > 99 ? '99+' : c;
+                b.classList.remove('hidden');
+                b.classList.add('flex');
+            } else {
+                b.classList.add('hidden');
+                b.classList.remove('flex');
+            }
+        }
+        fetch('/favorites').then(function(r) { return r.text(); }).then(function(h) {
+            var p = new DOMParser();
+            var d = p.parseFromString(h, 'text/html');
+            updCount(d.querySelectorAll('article.tool-card, .tool-card').length);
+        }).catch(function() {});
+
+        /* ── Flash auto-dismiss ── */
+        function dismissFlash(btn) {
+            var msg = btn.closest('.flash-msg');
+            if (msg) {
+                msg.style.opacity = '0';
+                msg.style.transform = 'translateX(60px)';
+                msg.style.transition = 'all .3s ease';
+                setTimeout(function() { msg.remove(); }, 300);
+            }
+        }
+        setTimeout(function() {
+            document.querySelectorAll('.flash-msg').forEach(function(m) {
+                setTimeout(function() {
+                    m.style.opacity = '0';
+                    m.style.transform = 'translateX(60px)';
+                    m.style.transition = 'all .3s ease';
+                    setTimeout(function() { m.remove(); }, 300);
+                }, 6000);
+            });
+        }, 500);
+
+        /* ── Global showToast for external calls ── */
+        window.showToast = showToast;
+    })();
+    </script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
